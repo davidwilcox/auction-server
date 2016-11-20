@@ -1,0 +1,23 @@
+{
+  "name": "auction",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.7.0",
+    "connect-multiparty": "^2.0.0",
+    "express-jwt": "^5.1.0",
+    "fs": "0.0.1-security",
+    "jsonwebtoken": "^7.1.9",
+    "stripe": "^4.12.0"
+  },
+  "devDependencies": {
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.5.2",
+    "morgan": "^1.7.0",
+    "serve-favicon": "^2.3.0",
+    "serverless-offline": "^3.3.1"
+  }
+}

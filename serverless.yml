@@ -1,0 +1,319 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: aws-nodejs # NOTE: update this with your service name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+
+# you can overwrite defaults here
+  stage: prod
+  region: us-west-2
+
+
+plugins:
+  - serverless-offline
+
+# you can add statements to the Lambda function's IAM Role here
+#  iamRoleStatements:
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:ListBucket"
+#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:PutObject"
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          - - "arn:aws:s3:::"
+#            - "Ref" : "ServerlessDeploymentBucket"
+
+# you can add packaging information here
+#package:
+#  exclude:
+#    - exclude-me.js
+#  artifact: my-service-code.zip
+
+functions:
+  CreateGuest:
+    handler: handler.createguest
+    events:
+      - http:
+          path: users/create
+          method: get
+          cors: true
+  FindTickets:
+    handler: handler.findtickets
+    events:
+      - http:
+          path: findtickets/{email}
+          method: get
+          cors: true
+
+  AllItems:
+    handler: handler.allitems
+    events:
+      - http:
+          path: allitems
+          method: get
+          cors: true
+          
+  AllFromTable:
+    handler: handler.allFromTable
+    events:
+      - http:
+          path: all/{table}
+          method: get
+          cors: true
+          
+  UploadPhoto:
+    handler: handler.uploadphoto
+    events:
+      - http:
+          path: uploadphoto
+          method: post
+          cors: true
+         
+  Register:
+    handler: handler.register
+    events:
+      - http:
+          path: register
+          method: post
+          cors: true
+
+  ReplaceUserPhotoId:
+    handler: handler.ReplaceUserPhotoId
+    events:
+      - http:
+          path: replace_user_photo_id
+          method: post
+          cors: true
+
+  SendInvoice:
+    handler: handler.SendInvoice
+    events:
+      - http:
+          path: send_invoice
+          method: post
+          cors: true
+
+  ChargeAllUsers:
+    handler: handler.ChargeAllUsers
+    events:
+      - http:
+          path: charge_all_users
+          method: post
+          cors: true
+
+  AddAdmin:
+    handler: handler.addadmin
+    events:
+      - http:
+          path: addadmin
+          method: post
+          cors: true
+
+  Login:
+    handler: handler.Login
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+
+  SubmitItem:
+    handler: handler.SubmitItem
+    events:
+      - http:
+          path: submititem
+          method: post
+          cors: true
+
+  ChargeCustomer:
+    handler: handler.ChargeCustomer
+    events:
+      - http:
+          path: chargecustomer
+          method: post
+          cors: true
+
+
+  ModifyTicket:
+    handler: handler.ModifyTicket
+    events:
+      - http:
+          path: modifyticket
+          method: post
+          cors: true
+
+  DeleteBidder:
+    handler: handler.DeleteBidder
+    events:
+      - http:
+          path: deletebidder
+          method: post
+          cors: true
+
+  DeleteItem:
+    handler: handler.DeleteItem
+    events:
+      - http:
+          path: deleteitem
+          method: post
+          cors: true
+
+  DeleteTransaction:
+    handler: handler.DeleteTransaction
+    events:
+      - http:
+          path: deletetransaction
+          method: post
+          cors: true
+
+  AddBuyer:
+    handler: handler.AddBuyer
+    events:
+      - http:
+          path: addbuyer
+          method: post
+          cors: true
+
+  LostPassword:
+    handler: handler.LostPassword
+    events:
+      - http:
+          path: lost_password
+          method: post
+          cors: true
+
+  ResetPassword:
+    handler: handler.ResetPassword
+    events:
+      - http:
+          path: reset_password
+          method: post
+          cors: true
+
+
+#    The following are a few example events you can configure
+#    NOTE: Please make sure to change your handler code to work with those events
+#    Check the event documentation for details
+#    events:
+#      - s3: ${env:BUCKET}
+#      - schedule: rate(10 minutes)
+#      - sns: greeter-topic
+#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    BidNumberTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: auction_bidnumber
+        AttributeDefinitions: 
+          - AttributeName: id
+            AttributeType: S
+        KeySchema: 
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        
+    TicketsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: auction_tickets
+        AttributeDefinitions: 
+          - AttributeName: bidnumber
+            AttributeType: N
+          - AttributeName: login
+            AttributeType: S
+        KeySchema: 
+          - AttributeName: bidnumber
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: useremail
+            KeySchema:
+              - AttributeName: login
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    TransactionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: auction_transactions
+        AttributeDefinitions: 
+          - AttributeName: id
+            AttributeType: S
+        KeySchema: 
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: auction_users
+        AttributeDefinitions: 
+          - AttributeName: email
+            AttributeType: S
+        KeySchema: 
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+
+    ItemsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: auction_items
+        AttributeDefinitions: 
+          - AttributeName: id
+            AttributeType: S
+        KeySchema: 
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+      
+
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
