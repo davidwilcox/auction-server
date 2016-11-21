@@ -282,6 +282,67 @@ module.exports.uploadphoto = function(event, context, callback) {
 };
 
 
+module.exports.login = function(event, context, callback) {
+    var body = JSON.parse(event.body);
+    console.log(body);
+    if ( !body.email || !body.password ) {
+        callback({message: "Please fill out both 'email' and 'password'"});
+    }
+
+    var authenticate = function(done) {
+	body.username = body.email;
+
+	var params = {
+            TableName: "users",
+            Key: {
+		"email": body.email
+            }
+	};
+
+	docClient.get(params, function(error, data) {
+            if ( error ) {
+		return done(null, false, { message: error });
+            }
+            if ( !data.Item ) {
+		return done(null, false, { message: "User doesn't exist." });
+            }
+            hash = data.Item.hash;
+            salt = data.Item.salt;
+            test_hash = crypto.pbkdf2Sync(body.password, salt, 1000, 64).toString('hex');
+            if ( test_hash != hash ) {
+		return done(null, false, { message: "Invalid password." });
+            }
+            return done(null, data.Item);
+	});
+    };
+
+    authenticate(function(err, user, info) {
+
+        console.log(err);
+        console.log(user);
+        console.log(info);
+        if ( err ) {
+            callback(err);
+        }
+        if ( user ) {
+            var today = new Date();
+            var exp = new Date(today);
+            exp.setDate(today.getDate() + 60);
+
+            delete user.salt;
+            delete user.hash;
+	    callback(null,{
+		statusCode: 200,
+		body: {token: jwtsign.sign({
+                    user: user,
+                    exp: parseInt(exp.getTime()/1000),
+		}, 'SECRET')}});
+        } else {
+            callback(info);
+        }
+    });
+};
+
 module.exports.register = function(event, context, callback) {
     //router.post('/register', function(req, res, next) {
     var req = event;

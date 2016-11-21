@@ -26,14 +26,24 @@ provider:
   region: us-west-2
 
 
-plugins:
-  - serverless-offline
-
 # you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:Scan
+        - dynamodb:Query
+        - dynamodb:UpdateItem
+      Resource:
+        arn:aws:dynamodb:us-west-1:*:table/*
+    - Effect: "Allow"
+      Action:
+        - s3:PutObject,
+        - s3:GetObject,
+        - s3:DeleteObject
+      Resource:
+        arn:aws:s3:::svuus-photos
 #      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
 #    - Effect: "Allow"
 #      Action:
@@ -43,6 +53,9 @@ plugins:
 #          - ""
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
+
+plugins:
+  - serverless-offline
 
 # you can add packaging information here
 #package:
@@ -131,7 +144,7 @@ functions:
           cors: true
 
   Login:
-    handler: handler.Login
+    handler: handler.login
     events:
       - http:
           path: login
