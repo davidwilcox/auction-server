@@ -596,21 +596,18 @@ function send_invoice(req, res, msg, subject, do_charge) {
 			resolve(data);
 		});
 	    }));
-	}
 
-
-	if ( do_charge ) {
-
-
-	    charges.push(new Promise(function(resolve, reject) {
-		stripe.charges.create(charge, function(charge_err, charge) {
-		    if ( charge_err ) {
-			reject({err: charge_err});
-		    } else {
-			resolve({charge_id: charge.id});
-		    }
-		});
-	    }));
+	    if ( do_charge ) {
+		charges.push(new Promise(function(resolve, reject) {
+		    stripe.charges.create(charge, function(charge_err, charge) {
+			if ( charge_err ) {
+			    reject({err: charge_err});
+			} else {
+			    resolve({charge_id: charge.id});
+			}
+		    });
+		}));
+	    }
 	}
 
 	Promise.all(charges).then(function(data) {
