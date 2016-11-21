@@ -7,7 +7,11 @@ AWS.config.update({
     region: "us-west-2"
 });
 
-var stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+var STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
+if ( !STRIPE_KEY )
+    STRIPE_KEY = 'sk_test_cFoJaGms4IlJiPpmiXRgV72u';
+var stripe = require("stripe")(STRIPE_KEY);
 var dynamodb = new AWS.DynamoDB();
 var docClient = new AWS.DynamoDB.DocumentClient();
 
