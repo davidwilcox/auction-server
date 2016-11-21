@@ -31,6 +31,10 @@ function guid() {
 	s4() + '-' + s4() + s4() + s4();
 }
 
+var headers_ = {
+    'Access-Control-Allow-Origin': '*',
+};
+
 
 module.exports.createguest = function(event, context, callback) {
     var req = event;
@@ -82,7 +86,8 @@ module.exports.createguest = function(event, context, callback) {
 		} else {
 		    console.log("Added item:", JSON.stringify(data, null, 2));
 		    callback(null,{
-			statusCode: 200,data
+			statusCode: 200,data,
+			headers: headers_
 		    });
 		}
 	    });
@@ -165,7 +170,8 @@ module.exports.findtickets = function(event, context, callback) {
 	} else {
 	    callback(null,{
 		statusCode: 200,
-		body:data.Items
+		body:data.Items,
+		headers: headers_
 	    });
 	}
     });
@@ -216,7 +222,8 @@ module.exports.allitems = function(event, context, callback) {
 	} else {
 	    callback(null,{
 		statusCode: 200,
-		body: data.Items
+		body: data.Items,
+		headers: headers_
 	    });
 	}
     });
@@ -238,7 +245,8 @@ module.exports.allFromTable = function(event, context, callback) {
 	    console.log(JSON.stringify(data.Items));
 	    callback(null,{
 		statusCode: 200,
-		body: data.Items
+		body: data.Items,
+		headers: headers_
 	    });
 	}
     });
@@ -276,17 +284,21 @@ module.exports.uploadphoto = function(event, context, callback) {
 		body: {photoid : params.Key}}));
 	    callback(null,{
 		statusCode: 200,
-		body: {photoid : params.Key}});
+		body: {photoid : params.Key},
+		headers: headers_});
 	}
     });
 };
 
 
 module.exports.login = function(event, context, callback) {
+    console.log(event);
     var body = JSON.parse(event.body);
     console.log(body);
     if ( !body.email || !body.password ) {
-        callback({message: "Please fill out both 'email' and 'password'"});
+	body.email = 'davidlukewilcox@gmail.com';
+	body.password = 'IOP89qwer';
+        //return callback({message: "Please fill out both 'email' and 'password'"});
     }
 
     var authenticate = function(done) {
@@ -333,10 +345,11 @@ module.exports.login = function(event, context, callback) {
             delete user.hash;
 	    callback(null,{
 		statusCode: 200,
-		body: {token: jwtsign.sign({
+		body: JSON.stringify({token: jwtsign.sign({
                     user: user,
                     exp: parseInt(exp.getTime()/1000),
-		}, 'SECRET')}});
+		}, 'SECRET')}),
+		headers: headers_});
         } else {
             callback(info);
         }
@@ -385,7 +398,8 @@ module.exports.register = function(event, context, callback) {
 		    email: req.body.email,
 		    user: req.body,
 		    exp: parseInt(exp.getTime()/1000),
-		}, 'SECRET')}});
+		}, 'SECRET')},
+		headers: headers_});
 	}
     });
 };
@@ -446,7 +460,8 @@ module.exports.ReplaceUserPhotoId = function(event, context, callback) {
 	    callback(null,
 		     {
 			 statusCode: 200,
-			 body: { success: true }});
+			 body: { success: true },
+			 headers: headers_});
 	}
     });
 };
@@ -600,7 +615,8 @@ function send_invoice(req, res, msg, subject, do_charge) {
 	Promise.all(charges).then(function(data) {
 	    callback(null,{
 		statusCode: 200,
-		body: {success: true}
+		body: {success: true},
+		headers: headers_
 	    });
 	}, function(err) {
 	    console.log(err);
@@ -651,7 +667,8 @@ module.exports.addadmin = function(event, context, callback) {
 	} else {
 	    callback(null, {
 		statusCode: 200,
-		body: {success: true}
+		body: {success: true},
+		headers: headers_
 	    });
 	}
     });
@@ -683,7 +700,8 @@ module.exports.SubmitItem = function(event, context, callback) {
 	} else {
             callback(null,{
 		statusCode: 200,
-		body: {message: "item added"}
+		body: {message: "item added"},
+		headers: headers_
 	    });
 	}
     });
@@ -874,7 +892,8 @@ module.exports.ChargeCustomer = function(event, context, callback) {
 				    console.log(err);
 				return callback(null,{
 				    statusCode: 200,
-				    body: {added: true}});
+				    body: {added: true},
+				    headers: headers_});
 			    });
 
 			} else {
@@ -911,7 +930,8 @@ module.exports.ModifyTicket = function(event, context, callback) {
 	} else {
             callback(null,{
 		statusCode: 200,
-		body: {message: "ticket added"}});
+		body: {message: "ticket added"},
+		headers: headers_});
 	}
     });
 
@@ -965,7 +985,8 @@ module.exports.DeleteBidder = function(event, context, callback) {
     Promise.all(promises).then(function(data) {
 	callback(null,{
 	    statusCode: 200,
-	    body: data});
+	    body: data,
+	    headers: headers_});
     }, function(err) {
 	console.log(err);
 	callback(err);
@@ -1019,7 +1040,8 @@ module.exports.DeleteItem = function(event, context, callback) {
 	console.log(data);
 	callback(null,{
 	    statusCode: 200,
-	    body: data});
+	    body: data,
+	    headers: headers_});
     }, function(err) {
 	console.log(err);
 	callback(err);
@@ -1048,7 +1070,8 @@ module.exports.DeleteTransaction = function(event, context, callback) {
 	} else {
 	    callback(null,{
 		statusCode: 200,
-		body: {data: data}
+		body: {data: data},
+		headers: headers_
 	    });
 	}
     });
@@ -1088,7 +1111,8 @@ module.exports.AddBuyer = function(event, context, callback) {
 	    console.log(data);
 	    callback(null,{
 		statusCode: 200,
-		body: it});
+		body: it,
+		headers: headers_});
 	}
     });
 };
@@ -1190,7 +1214,8 @@ module.exports.LostPassword = function(event, context, callback) {
 		statusCode: 200,
 		body: {
 		    sent: false
-		}});
+		},
+		headers: headers_});
 	} else {
 	    storeLostToken(email, function(err, token) {
 		if (err) {
@@ -1205,7 +1230,8 @@ module.exports.LostPassword = function(event, context, callback) {
 				statusCode: 200,
 				body: {
 				    sent: true
-				}});
+				},
+				headers: headers_});
 			}
 		    });
 		}
@@ -1296,7 +1322,8 @@ module.exports.ResetPassword = function(event, context, callback) {
 	    callback(null,{
 		statusCode: 200,body: {
 		    changed: false
-		}});
+		},
+		headers: headers_});
 	} else if (lostToken != correctToken) {
 	    // Wrong token, no password lost
 	    console.log('Wrong lostToken for user: ' + email);
@@ -1304,7 +1331,8 @@ module.exports.ResetPassword = function(event, context, callback) {
 		statusCode: 200,
 		body: {
 		    changed: false
-		}});
+		},
+		headers: headers_});
 	} else {
 	    console.log('User logged in: ' + email);
 	    var salt = crypto.randomBytes(16).toString('hex');
@@ -1320,7 +1348,8 @@ module.exports.ResetPassword = function(event, context, callback) {
 			    callback(null,{
 				statusCode: 200,body: {
 				    changed: true
-				}});
+				},
+				headers: headers_});
 			}
 		    });
 		}

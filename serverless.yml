@@ -36,7 +36,8 @@ provider:
         - dynamodb:Query
         - dynamodb:UpdateItem
       Resource:
-        arn:aws:dynamodb:us-west-1:*:table/*
+        arn:aws:dynamodb:us-west-2:373262334163:table/users
+        #arn:aws:dynamodb:us-west-2:*:table/*
     - Effect: "Allow"
       Action:
         - s3:PutObject,
