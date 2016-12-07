@@ -622,7 +622,7 @@ function send_invoice(req, res, msg, subject, do_charge) {
 	}, function(err) {
 	    console.log(err);
 	});
-    });    
+    });
 }
 
 module.exports.ChargeAllUsers = function(event, context, callback) {
@@ -645,13 +645,14 @@ module.exports.SendItemEmails = function(event, context, callback) {
     promises.push(queryAllFromTable('tickets'));
 
 
-    Promise.all(function(data) {
+    Promise.all(promises).then(function(data) {
 	var items = data[0];
 
 	var bidders = data[2];
-	var indexed_bidders = {};	
-	for(var idx in data[0]) {
-	    var ticket = data[0][idx];
+	var indexed_bidders = {};
+	for(var idx in bidders) {
+            //console.log(idx);
+	    var ticket = bidders[idx];
 	    indexed_bidders[ticket.bidnumber] = ticket;
 	}
 
@@ -664,53 +665,85 @@ module.exports.SendItemEmails = function(event, context, callback) {
 	});
 
 
+        var emails = [];
 	items.forEach(function(item) {
-	    if ( item.itemcategory == 'event' ) {
-		var message = "Thank you for donating your event " + event.name + " at the SVUUS auction! This email is to inform you of all the winners on your event so that you can reach out to them and make sure they can make it. <br><br>If you ever want to, you can also log into your account at auction.svuus.org, go to \"My Auction\" -> \"My Donated Items\".<br><br><table>";
-		indexed_transactions[item.id].forEach(function(transaction) {
-		    message += "<tr><td>" + indexed_bidders[transaction.bidnum].buyer.firstname
-			+ " " +  indexed_bidders[transaction.bidnum].buyer.firstname
-			+ "</td><td>" + indexed_bidders[transaction.bidnum].buyer.email
-			+ "</td><td>" + indexed_bidders[transaction.bidnum].buyer.phonenumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
+	    if ( item.category == 'event' ) {
+                var eventdate = new Date(item.eventdate);
+                var typedtime = item.eventtypedtime;
+                var resolved_date;
+                if ( typedtime )
+                    resolved_date = typedtime;
+                else if ( eventdate > new Date() )
+                    resolved_date = eventdate.toDateString();
+                var resolved_date = typedtime ? typedtime : eventdate.toDateString();
+                console.log("FIRST");
+                console.log(item);
+                console.log(item.eventdate);
+                console.log(eventdate);
+                console.log(typedtime);
+                console.log(resolved_date);
+
+		var message = "Thank you for donating your event " + item.name + " at the SVUUS auction! This email is to inform you of all the winners on your event so that you can reach out to them and make sure they can make it. <br><br>If you ever want to, you can also log into your account at auction.svuus.org, go to \"My Auction\" -> \"My Donated Items\"."
+                if ( resolved_date )
+                    message += "As a reminder, the date you mentioned that it would be done is " + resolved_date + ".";
+                message += "<br><br><table>";
+                if ( !(item.id in indexed_transactions) ) {
+                    console.log(item);
+                    return;
+                }
+                indexed_transactions[item.id].forEach(function(transaction) {
+                    //console.log(transaction);
+                    //console.log(indexed_bidders[transaction.bidnumber]);
+		    message += "<tr><td>" + indexed_bidders[transaction.bidnumber].buyer.firstname
+			+ " " +  indexed_bidders[transaction.bidnumber].buyer.lastname
+			+ "</td><td>" + indexed_bidders[transaction.bidnumber].buyer.email
+			+ "</td><td>" + indexed_bidders[transaction.bidnumber].buyer.phonenumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
 			+ "</td></tr>"
 		});
 		message += "</table>";
 
 
-		ses.sendEmail({
-		    Source: "kristen.thelen@gmail.com",
-		    Destination: {
-			ToAddresses: [
-			    item.donor.email
-			]
-		    },
-		    Message: {
-			Subject: {
-			    Data: subject
-			},
-			Body: {
-			    Html: {
-				Data: '<html><head>'
-				    + '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />'
-				    + '<title>Buyers For ' + item.name + '</title>'
-				    + '</head><body>'
-				    + message
-				    + '</body></html>'
+                emails.push(new Promise(function(resolve, reject) {
+		    ses.sendEmail({
+		        Source: "kristen.thelen@gmail.com",
+		        Destination: {
+			    ToAddresses: [
+			        item.donor.email
+			    ]
+		        },
+		        Message: {
+			    Subject: {
+			        Data: "Attendees For Your Donated Auction Event: " + item.name
+			    },
+			    Body: {
+			        Html: {
+				    Data: '<html><head>'
+				        + '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />'
+				        + '<title>Buyers For ' + item.name + '</title>'
+				        + '</head><body>'
+				        + message
+				        + '</body></html>'
+			        }
 			    }
-			}
-		    }
-		}, function(err, data) {
-		    if ( err ) {
-			console.log(err);
-			reject(err);
-		    }
-		    if ( data )
-			resolve(data);
-		});
+		        }
+		    }, function(err, data) {
+		        if ( err ) {
+			    console.log(err);
+			    reject(err);
+		        }
+		        if ( data )
+			    resolve(data);
+		    });
+                }
+                                       ));
 	    }
-	});
+        });
+        Promise.all(emails).then(function(data) {
+            callback(null,JSON.stringify({done: "true"}));
+        });
     }, function(err) {
 	console.log(err);
+        callback(JSON.stringify(err));
     });
 };
 
