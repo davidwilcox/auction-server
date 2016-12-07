@@ -234,25 +234,39 @@ module.exports.allitems = function(event, context, callback) {
 };
 
 
+function queryAllFromTable(tablename)
+{
+    var p = new Promise(function(resolve, reject) {
+	var params = {
+	    TableName: tablename
+	};
+	docClient.scan(params, function(err, data) {
+	    if (err) {
+		reject(err);
+	    } else {
+		resolve(data.Items);
+	    }
+	});
+    });
+    return p;
+}
+
+
 module.exports.allFromTable = function(event, context, callback) {
     //router.get("/all/:table", function(req, res, next) {
     var req = event;
     console.log(event);
-    var params = {
-	TableName: req.pathParameters.table
-    };
-    docClient.scan(params, function(err, data) {
-	if (err) {
-	    console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
-	    callback(err);
-	} else {
-	    console.log(JSON.stringify(data.Items));
-	    callback(null,{
-		statusCode: 200,
-		body: JSON.stringify(data.Items),
-		headers: headers_
-	    });
-	}
+    var p = queryAllFromTable(req.pathParameters.table);
+    p.then(function(data) {
+	console.log(JSON.stringify(data.Items));
+	callback(null,{
+	    statusCode: 200,
+	    body: JSON.stringify(data.Items),
+	    headers: headers_
+	});
+    }, function(err) {
+	console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+	callback(err);
     });
 };
 
@@ -470,22 +484,7 @@ module.exports.ReplaceUserPhotoId = function(event, context, callback) {
 
 
 function send_invoice(req, res, msg, subject, do_charge) {
-    var get_all = function(table) {
-	var p = new Promise(function(resolve, reject) {
-	    var params = {
-		TableName: table
-	    };
-	    docClient.scan(params, function(err, data) {
-		if (err) {
-		    reject(err);
-		    //console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
-		} else {
-		    resolve(data.Items);
-		}
-	    });
-	});
-	return p;
-    };
+    var get_all = queryAllFromTable;
 
     var promises = [];
     promises.push(get_all("tickets"));
@@ -636,6 +635,83 @@ module.exports.SendInvoice = function(event, context, callback) {
     //router.post('/send_invoice', function(req, res, next) {
     var req = event.body;
     send_invoice(req,res,'This email details items that you bid on at the SVUUS auction. Please let us know if there are any problems with this invoice. Your credit card will be charged for $',"SVUUS Auction Invoice", false);
+};
+
+module.exports.SendItemEmails = function(event, context, callback) {
+
+    var promises = [];
+    promises.push(queryAllFromTable('items'));
+    promises.push(queryAllFromTable('transactions'));
+    promises.push(queryAllFromTable('tickets'));
+
+
+    Promise.all(function(data) {
+	var items = data[0];
+
+	var bidders = data[2];
+	var indexed_bidders = {};	
+	for(var idx in data[0]) {
+	    var ticket = data[0][idx];
+	    indexed_bidders[ticket.bidnumber] = ticket;
+	}
+
+	var indexed_transactions = {};
+	var transactions = data[1];
+	transactions.forEach(function(transaction) {
+	    if ( !indexed_transactions[transaction.itemid] )
+		indexed_transactions[transaction.itemid] = [];
+	    indexed_transactions[transaction.itemid].push(transaction);
+	});
+
+
+	items.forEach(function(item) {
+	    if ( item.itemcategory == 'event' ) {
+		var message = "Thank you for donating your event " + event.name + " at the SVUUS auction! This email is to inform you of all the winners on your event so that you can reach out to them and make sure they can make it. <br><br>If you ever want to, you can also log into your account at auction.svuus.org, go to \"My Auction\" -> \"My Donated Items\".<br><br><table>";
+		indexed_transactions[item.id].forEach(function(transaction) {
+		    message += "<tr><td>" + indexed_bidders[transaction.bidnum].buyer.firstname
+			+ " " +  indexed_bidders[transaction.bidnum].buyer.firstname
+			+ "</td><td>" + indexed_bidders[transaction.bidnum].buyer.email
+			+ "</td><td>" + indexed_bidders[transaction.bidnum].buyer.phonenumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
+			+ "</td></tr>"
+		});
+		message += "</table>";
+
+
+		ses.sendEmail({
+		    Source: "kristen.thelen@gmail.com",
+		    Destination: {
+			ToAddresses: [
+			    item.donor.email
+			]
+		    },
+		    Message: {
+			Subject: {
+			    Data: subject
+			},
+			Body: {
+			    Html: {
+				Data: '<html><head>'
+				    + '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />'
+				    + '<title>Buyers For ' + item.name + '</title>'
+				    + '</head><body>'
+				    + message
+				    + '</body></html>'
+			    }
+			}
+		    }
+		}, function(err, data) {
+		    if ( err ) {
+			console.log(err);
+			reject(err);
+		    }
+		    if ( data )
+			resolve(data);
+		});
+	    }
+	});
+    }, function(err) {
+	console.log(err);
+    });
 };
 
 
