@@ -683,7 +683,7 @@ module.exports.SendItemEmails = function(event, context, callback) {
                 console.log(typedtime);
                 console.log(resolved_date);
 
-		var message = "Thank you for donating your event " + item.name + " at the SVUUS auction! This email is to inform you of all the winners on your event so that you can reach out to them and make sure they can make it. <br><br>If you ever want to, you can also log into your account at auction.svuus.org, go to \"My Auction\" -> \"My Donated Items\"."
+		var message = "Sorry for the extra email! The last email we sent had the names of the buyers of the bidder, not the bidder itself. I fixed the names here in this email.<br><br>Thank you for donating your event " + item.name + " at the SVUUS auction! This email is to inform you of all the winners on your event so that you can reach out to them and make sure they can make it. <br><br>If you ever want to, you can also log into your account at auction.svuus.org, go to \"My Auction\" -> \"My Donated Items\"."
                 if ( resolved_date )
                     message += "As a reminder, the date you mentioned that it would be done is " + resolved_date + ".";
                 message += "<br><br><table>";
@@ -693,9 +693,9 @@ module.exports.SendItemEmails = function(event, context, callback) {
                 }
                 indexed_transactions[item.id].forEach(function(transaction) {
                     //console.log(transaction);
-                    //console.log(indexed_bidders[transaction.bidnumber]);
-		    message += "<tr><td>" + indexed_bidders[transaction.bidnumber].buyer.firstname
-			+ " " +  indexed_bidders[transaction.bidnumber].buyer.lastname
+                    console.log(indexed_bidders[transaction.bidnumber]);
+		    message += "<tr><td>" + indexed_bidders[transaction.bidnumber].firstname
+			+ " " +  indexed_bidders[transaction.bidnumber].lastname
 			+ "</td><td>" + indexed_bidders[transaction.bidnumber].buyer.email
 			+ "</td><td>" + indexed_bidders[transaction.bidnumber].buyer.phonenumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
 			+ "</td></tr>"
@@ -703,39 +703,39 @@ module.exports.SendItemEmails = function(event, context, callback) {
 		message += "</table>";
 
 
-                emails.push(new Promise(function(resolve, reject) {
-		    ses.sendEmail({
-		        Source: "kristen.thelen@gmail.com",
-		        Destination: {
-			    ToAddresses: [
-			        item.donor.email
-			    ]
-		        },
-		        Message: {
-			    Subject: {
-			        Data: "Attendees For Your Donated Auction Event: " + item.name
-			    },
-			    Body: {
-			        Html: {
-				    Data: '<html><head>'
-				        + '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />'
-				        + '<title>Buyers For ' + item.name + '</title>'
-				        + '</head><body>'
-				        + message
-				        + '</body></html>'
+                    emails.push(new Promise(function(resolve, reject) {
+		        ses.sendEmail({
+		            Source: "kristen.thelen@gmail.com",
+		            Destination: {
+			        ToAddresses: [
+			            item.donor.email
+			        ]
+		            },
+		            Message: {
+			        Subject: {
+			            Data: "Attendees For Your Donated Auction Event: " + item.name
+			        },
+			        Body: {
+			            Html: {
+				        Data: '<html><head>'
+				            + '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />'
+				            + '<title>Buyers For ' + item.name + '</title>'
+				            + '</head><body>'
+				            + message
+				            + '</body></html>'
+			            }
 			        }
-			    }
-		        }
-		    }, function(err, data) {
-		        if ( err ) {
-			    console.log(err);
-			    reject(err);
-		        }
-		        if ( data )
-			    resolve(data);
-		    });
-                }
-                                       ));
+		            }
+		        }, function(err, data) {
+		            if ( err ) {
+			        console.log(err);
+			        reject(err);
+		            }
+		            if ( data )
+			        resolve(data);
+		        });
+                    }
+                                           ));
 	    }
         });
         Promise.all(emails).then(function(data) {
