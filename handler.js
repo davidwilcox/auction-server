@@ -236,12 +236,15 @@ module.exports.allitems = function(event, context, callback) {
 
 function queryAllFromTable(tablename)
 {
+    console.log(tablename);
     var p = new Promise(function(resolve, reject) {
 	var params = {
 	    TableName: tablename
 	};
 	docClient.scan(params, function(err, data) {
+            console.log(err);
 	    if (err) {
+                console.log(err);
 		reject(err);
 	    } else {
 		resolve(data.Items);
@@ -256,12 +259,12 @@ module.exports.allFromTable = function(event, context, callback) {
     //router.get("/all/:table", function(req, res, next) {
     var req = event;
     console.log(event);
-    var p = queryAllFromTable(req.pathParameters.table);
+    var p = queryAllFromTable(event.pathParameters.table);
     p.then(function(data) {
 	console.log(JSON.stringify(data.Items));
 	callback(null,{
 	    statusCode: 200,
-	    body: JSON.stringify(data.Items),
+	    body: JSON.stringify(data),
 	    headers: headers_
 	});
     }, function(err) {
