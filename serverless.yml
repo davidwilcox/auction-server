@@ -45,6 +45,11 @@ provider:
         - s3:DeleteObject
       Resource:
         arn:aws:s3:::svuus-photos
+    - Effect: "Allow"
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
+      Resource: arn:aws:ses:*:*:identity/*
 #      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
 #    - Effect: "Allow"
 #      Action:
