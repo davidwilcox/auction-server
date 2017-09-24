@@ -60,7 +60,7 @@ provider:
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
  
-package: 
+package:
   exclude:
     - node_modules/**
 
@@ -76,14 +76,14 @@ plugins:
 
 functions:
   CreateGuest:
-    handler: handler.createguest
+    handler: lib/handler.createguest
     events:
       - http:
           path: users/create
           method: get
           cors: true
   FindTickets:
-    handler: handler.findtickets
+    handler: lib/handler.findtickets
     events:
       - http:
           path: findtickets/{email}
@@ -91,7 +91,7 @@ functions:
           cors: true
 
   AllItems:
-    handler: handler.allitems
+    handler: lib/handler.allitems
     events:
       - http:
           path: allitems
@@ -99,7 +99,7 @@ functions:
           cors: true
           
   AllFromTable:
-    handler: handler.allFromTable
+    handler: lib/handler.allFromTable
     events:
       - http:
           path: all/{table}
@@ -107,7 +107,7 @@ functions:
           cors: true
           
   UploadPhoto:
-    handler: handler.uploadphoto
+    handler: lib/handler.uploadphoto
     events:
       - http:
           path: uploadphoto
@@ -115,7 +115,7 @@ functions:
           cors: true
          
   Register:
-    handler: handler.register
+    handler: lib/handler.register
     events:
       - http:
           path: register
@@ -123,7 +123,7 @@ functions:
           cors: true
 
   ReplaceUserPhotoId:
-    handler: handler.ReplaceUserPhotoId
+    handler: lib/handler.ReplaceUserPhotoId
     events:
       - http:
           path: replace_user_photo_id
@@ -131,7 +131,7 @@ functions:
           cors: true
 
   SendInvoice:
-    handler: handler.SendInvoice
+    handler: lib/handler.SendInvoice
     events:
       - http:
           path: send_invoice
@@ -139,7 +139,7 @@ functions:
           cors: true
 
   SendItemEmails:
-    handler: handler.SendItemEmails
+    handler: lib/handler.SendItemEmails
     events:
       - http:
           path: send_item_emails
@@ -147,7 +147,7 @@ functions:
           cors: true
 
   ChargeAllUsers:
-    handler: handler.ChargeAllUsers
+    handler: lib/handler.ChargeAllUsers
     events:
       - http:
           path: charge_all_users
@@ -155,7 +155,7 @@ functions:
           cors: true
 
   AddAdmin:
-    handler: handler.addadmin
+    handler: lib/handler.addadmin
     events:
       - http:
           path: addadmin
@@ -163,7 +163,7 @@ functions:
           cors: true
 
   Login:
-    handler: handler.login
+    handler: lib/handler.login
     events:
       - http:
           path: login
@@ -171,7 +171,7 @@ functions:
           cors: true
 
   SubmitItem:
-    handler: handler.SubmitItem
+    handler: lib/handler.SubmitItem
     events:
       - http:
           path: submititem
@@ -179,7 +179,7 @@ functions:
           cors: true
 
   ChargeCustomer:
-    handler: handler.ChargeCustomer
+    handler: lib/handler.ChargeCustomer
     events:
       - http:
           path: chargecustomer
@@ -188,15 +188,15 @@ functions:
 
 
   ModifyTicket:
-    handler: handler.ModifyTicket
+    handler: lib/handler.ModifyTicket
     events:
       - http:
-          path: modifyticket
+          path: modify_ticket
           method: post
           cors: true
 
   DeleteBidder:
-    handler: handler.DeleteBidder
+    handler: lib/handler.DeleteBidder
     events:
       - http:
           path: deletebidder
@@ -204,7 +204,7 @@ functions:
           cors: true
 
   DeleteItem:
-    handler: handler.DeleteItem
+    handler: lib/handler.DeleteItem
     events:
       - http:
           path: deleteitem
@@ -212,7 +212,7 @@ functions:
           cors: true
 
   DeleteTransaction:
-    handler: handler.DeleteTransaction
+    handler: lib/handler.DeleteTransaction
     events:
       - http:
           path: deletetransaction
@@ -220,7 +220,7 @@ functions:
           cors: true
 
   AddBuyer:
-    handler: handler.AddBuyer
+    handler: lib/handler.AddBuyer
     events:
       - http:
           path: addbuyer
@@ -228,7 +228,7 @@ functions:
           cors: true
 
   LostPassword:
-    handler: handler.LostPassword
+    handler: lib/handler.LostPassword
     events:
       - http:
           path: lost_password
@@ -236,7 +236,7 @@ functions:
           cors: true
 
   ResetPassword:
-    handler: handler.ResetPassword
+    handler: lib/handler.ResetPassword
     events:
       - http:
           path: reset_password
