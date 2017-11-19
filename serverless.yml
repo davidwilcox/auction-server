@@ -26,6 +26,9 @@ provider:
   region: us-west-2
 
 
+  environment:
+    STRIPE_TOKEN: ${file(./config/config.${self:provider.stage}.json):STRIPE_TOKEN}
+
 # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
     - Effect: "Allow"
@@ -67,7 +70,7 @@ package:
 
 plugins:
   - serverless-offline
-
+  - serverless-dynamodb-local
 # you can add packaging information here
 #package:
 
