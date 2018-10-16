@@ -27,7 +27,7 @@ provider:
 
 
   environment:
-    STRIPE_TOKEN: ${file(./config/config.${self:provider.stage}.json):STRIPE_TOKEN}
+    STRIPE_SECRET_KEY: ${file(./config/config.${self:provider.stage}.json):STRIPE_TOKEN}
 
 # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
